@@ -49,22 +49,20 @@ export async function onConnectionUpdate(update, restart, sock) {
       case DisconnectReason.connectionClosed:
       case DisconnectReason.connectionLost:
       case DisconnectReason.timedOut:
-      case 408:
-      case 405:
-      case 503:
+      case DisconnectReason.connectionReplaced:
+      case DisconnectReason.unavailableService:
         logger.warn('Connection lost, reconnecting...')
         return reconnect(restart)
 
       case DisconnectReason.restartRequired:
-      case 428:
-      case 515:
         logger.info('Restart required')
         return restart()
 
       case DisconnectReason.loggedOut:
       case 401:
         if (!everConnected) {
-          logger.warn('Pairing expired, retrying...')
+          logger.warn('Session rejected before first connect — resetting session and retrying')
+          try { await fsp.rm(SETTINGS.sessionPath, { recursive: true, force: true }) } catch {}
           if (reconnectTimer) clearTimeout(reconnectTimer)
           reconnectTimer = setTimeout(restart, 2000)
           return
@@ -81,8 +79,7 @@ export async function onConnectionUpdate(update, restart, sock) {
         process.exit(1)
 
       case DisconnectReason.multideviceMismatch:
-      case 405:
-        logger.error('Multi-device mismatch')
+        logger.error('Multi-device mismatch — resetting session')
         try { await fsp.rm(SETTINGS.sessionPath, { recursive: true, force: true }) } catch {}
         process.exit(1)
 
