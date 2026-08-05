@@ -20,6 +20,21 @@ export function storeMessage(msg) {
   }
 }
 
+async function requestPairingCode(sock) {
+  // Gate on the server's pairing invite ({ qr } update) — it only fires after
+  // baileys chose the registration path. Requesting earlier sets creds.me before
+  // validateConnection() picks login vs registration → unregistered login → 401.
+  try {
+    await sock.waitForConnectionUpdate((update) => update.qr !== undefined, 60_000)
+  } catch (err) {
+    logger.warn({ err }, 'Timed out waiting for pairing invitation, attempting anyway')
+  }
+  const phoneNumber = SETTINGS.pairingNumber.replace(/[^0-9]/g, '')
+  const raw = await sock.requestPairingCode(phoneNumber)
+  const code = raw?.match(/.{1,4}/g)?.join('-') || raw || ''
+  logger.info('Pairing code: %s', code)
+}
+
 export async function createClient() {
   const { state, saveCreds } = await useAuthState(SETTINGS.sessionPath)
   const { version } = await fetchLatestBaileysVersion()
@@ -47,15 +62,7 @@ export async function createClient() {
   sock._saveCreds = saveCreds
 
   if (SETTINGS.pairingNumber && !sock.authState.creds.registered) {
-    setTimeout(async () => {
-      try {
-        const raw = await sock.requestPairingCode(SETTINGS.pairingNumber)
-        const code = raw?.match(/.{1,4}/g)?.join('-') || raw || ''
-        logger.info('Pairing code: %s', code)
-      } catch (err) {
-        logger.error({ err }, 'Failed to request pairing code')
-      }
-    }, 3000)
+    requestPairingCode(sock).catch(err => logger.error({ err }, 'Failed to request pairing code'))
   }
 
   registerEvents(sock, createClient)
