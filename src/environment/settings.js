@@ -39,6 +39,11 @@ const SETTINGS = Object.freeze({
   agentCooldownMs: parseInt(process.env.AGENT_COOLDOWN_MS || '5000', 10),
   agentTimeoutMs: parseInt(process.env.AGENT_TIMEOUT_MS || '30000', 10),
   agentMaxHistory: parseInt(process.env.AGENT_MAX_HISTORY || '6', 10),
+
+  dashEnabled: process.env.DASH_WEB === 'true',
+  dashPort: parseInt(process.env.DASH_PORT || '3000', 10),
+  dashToken: process.env.DASH_TOKEN || '',
+  dashPublic: process.env.DASH_PUBLIC === 'true',
 })
 
 export default SETTINGS

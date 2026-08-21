@@ -45,6 +45,13 @@ export async function bootstrap() {
     setSocket(sock)
     logger.info('[Boot] Socket created & events bound')
 
+    if (SETTINGS.dashEnabled) {
+      try {
+        const { startDashboard } = await import('#dashboard/index.js')
+        startDashboard({ commandRegistry, orchestrator })
+      } catch (err) { logger.warn({ err: err.message }, '[Dashboard] failed to start') }
+    }
+
     const statusInfo = {
       version: APP_VERSION,
       author: 'Clayza',
