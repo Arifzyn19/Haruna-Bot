@@ -126,6 +126,16 @@ export function createSchema() {
       created_at  INTEGER NOT NULL DEFAULT (unixepoch())
     );
 
+    CREATE TABLE IF NOT EXISTS group_activity (
+      jid           TEXT    NOT NULL,
+      user_jid      TEXT    NOT NULL,
+      xp            INTEGER NOT NULL DEFAULT 0,
+      level         INTEGER NOT NULL DEFAULT 1,
+      message_count INTEGER NOT NULL DEFAULT 0,
+      updated_at    INTEGER NOT NULL DEFAULT (unixepoch()),
+      PRIMARY KEY (jid, user_jid)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_inventories_jid      ON inventories(jid);
     CREATE INDEX IF NOT EXISTS idx_transactions_from    ON transactions(from_jid);
     CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at);
@@ -133,6 +143,8 @@ export function createSchema() {
     CREATE INDEX IF NOT EXISTS idx_user_quests_jid      ON user_quests(jid);
     CREATE INDEX IF NOT EXISTS idx_users_level          ON users(level DESC);
     CREATE INDEX IF NOT EXISTS idx_warns_jid            ON warns(jid, group_jid);
+    CREATE INDEX IF NOT EXISTS idx_group_activity_jid  ON group_activity(jid, xp DESC);
+    CREATE INDEX IF NOT EXISTS idx_group_activity_user ON group_activity(user_jid);
   `)
   logger.info('Schema ready')
 }
