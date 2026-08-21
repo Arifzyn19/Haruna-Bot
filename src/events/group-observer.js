@@ -1,4 +1,5 @@
 import { groupModel, userModel } from '#storage/models/index.js'
+import { generateWelcomeCard } from '#features/welcome-card.js'
 import { logger } from '#helpers/logger.js'
 
 export async function onGroupParticipantsUpdate({ id, participants, action }, sock) {
@@ -19,13 +20,20 @@ export async function onGroupParticipantsUpdate({ id, participants, action }, so
         const groupName = meta?.subject ?? 'this group'
         const memberCount = meta?.participants?.length ?? 0
 
-        const msg = group.welcome_msg
+        const caption = group.welcome_msg
           ? group.welcome_msg.replace(/{name}/gi, `@${jid.split('@')[0]}`)
               .replace(/{group}/gi, groupName).replace(/{count}/gi, memberCount.toString())
           : `Selamat datang @${jid.split('@')[0]}! Kamu anggota ke-${memberCount} di ${groupName}`
 
-        await sock.sendMessage(id, { text: msg, mentions: [jid] })
-          .catch(err => logger.warn({ err: err.message }, 'Welcome send failed'))
+        let avatarUrl = null
+        try { avatarUrl = await sock.profilePictureUrl(jid, 'image').catch(() => null) } catch {}
+        try {
+          const card = await generateWelcomeCard({ name: pushName, groupName, memberCount, avatarUrl, action: 'welcome' })
+          await sock.sendMessage(id, { image: card, caption, mentions: [jid] })
+        } catch {
+          await sock.sendMessage(id, { text: caption, mentions: [jid] })
+        }
+        logger.info({ jid, groupName }, 'Welcome card sent')
       }
     }
 

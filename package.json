@@ -29,6 +29,7 @@
     "#dashboard/*": "./src/dashboard/*"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.7",
     "axios": "^1.7.0",
     "baileys": "latest",
     "better-sqlite3": "^11.0.0",
