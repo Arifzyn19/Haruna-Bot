@@ -5,6 +5,7 @@ import { logger } from '#helpers/logger.js'
 import { isStatus } from '#helpers/identifier.js'
 import { orchestrator } from '#extensions/lifecycle/orchestrator.js'
 import { aiService } from '#features/ai.js'
+import { agentService } from '#agent/index.js'
 import SETTINGS from '#environment/settings.js'
 
 export async function onMessagesUpsert({ messages, type }, sock) {
@@ -26,8 +27,16 @@ export async function onMessagesUpsert({ messages, type }, sock) {
 
       const botId = jidNormalizedUser(sock.user?.id)
       const isMentioned = botId && parsed.mentions?.includes(botId)
+      const isCommand = parsed.text?.startsWith(SETTINGS.prefix) ?? false
 
-      if (isMentioned && parsed.text && !parsed.text.startsWith(SETTINGS.prefix)) {
+      const hasMediaTrigger = parsed.isMedia || parsed.quoted?.isMedia
+      if (agentService.isEnabled() && (parsed.text || hasMediaTrigger) && !isCommand && (parsed.isGroup ? isMentioned : true)) {
+        await agentService.handleMessage(parsed, msg, sock)
+        continue
+      }
+
+      // Legacy mention-AI chat — only when the agent is disabled.
+      if (isMentioned && parsed.text && !isCommand) {
         if (aiService.isAvailable()) {
           const prompt = parsed.text.replace(new RegExp(`@${botId?.split('@')[0]}`, 'g'), '').trim()
           if (prompt) {

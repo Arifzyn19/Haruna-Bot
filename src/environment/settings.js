@@ -28,6 +28,17 @@ const SETTINGS = Object.freeze({
   anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5',
   groqKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+
+  geminiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+  aiAgentEnabled: process.env.AI_AGENT_ENABLED === 'true',
+
+  agentMaxToolCalls: parseInt(process.env.AGENT_MAX_TOOL_CALLS || '5', 10),
+  agentRateLimitMax: parseInt(process.env.AGENT_RATE_LIMIT_MAX || '10', 10),
+  agentRateLimitWindow: parseInt(process.env.AGENT_RATE_LIMIT_WINDOW || '60', 10),
+  agentCooldownMs: parseInt(process.env.AGENT_COOLDOWN_MS || '5000', 10),
+  agentTimeoutMs: parseInt(process.env.AGENT_TIMEOUT_MS || '30000', 10),
+  agentMaxHistory: parseInt(process.env.AGENT_MAX_HISTORY || '6', 10),
 })
 
 export default SETTINGS
