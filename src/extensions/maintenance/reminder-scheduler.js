@@ -1,22 +1,28 @@
 import { reminderModel } from '#storage/models/index.js'
+import { getSocket } from '#helpers/shutdown.js'
 import { logger } from '#helpers/logger.js'
 
 let interval = null
-let sockRef = null
 
 export default {
   name: 'reminder-scheduler',
-  async init(sock) {
-    sockRef = sock
+  async init() {
     interval = setInterval(async () => {
+      const sock = getSocket()
+      if (!sock) return
       try {
         const due = reminderModel.findDue()
         for (const r of due) {
           try {
-            await sockRef.sendMessage(r.jid, { text: `⏰ *Reminder*\n\n${r.text}\n\n_Dari @${r.sender.split('@')[0]}_` , mentions: [r.sender] })
+            await sock.sendMessage(r.jid, { text: `⏰ *Reminder*\n\n${r.text}\n\n_Dari @${r.sender.split('@')[0]}_`, mentions: [r.sender] })
             reminderModel.delete(r.id)
           } catch (err) {
             logger.warn({ err: err.message, id: r.id }, '[Reminder] send failed')
+            if (String(err.message).includes('sendMessage')) {
+              // sock error, keep for retry
+            } else {
+              reminderModel.delete(r.id)
+            }
           }
         }
       } catch (err) {
