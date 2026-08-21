@@ -142,9 +142,19 @@ export function createSchema() {
     CREATE INDEX IF NOT EXISTS idx_cooldowns_expires    ON cooldowns(expires_at);
     CREATE INDEX IF NOT EXISTS idx_user_quests_jid      ON user_quests(jid);
     CREATE INDEX IF NOT EXISTS idx_users_level          ON users(level DESC);
+    CREATE TABLE IF NOT EXISTS reminders (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      jid         TEXT    NOT NULL,
+      sender      TEXT    NOT NULL,
+      text        TEXT    NOT NULL,
+      trigger_at  INTEGER NOT NULL,
+      created_at  INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+
     CREATE INDEX IF NOT EXISTS idx_warns_jid            ON warns(jid, group_jid);
     CREATE INDEX IF NOT EXISTS idx_group_activity_jid  ON group_activity(jid, xp DESC);
     CREATE INDEX IF NOT EXISTS idx_group_activity_user ON group_activity(user_jid);
+    CREATE INDEX IF NOT EXISTS idx_reminders_trigger    ON reminders(trigger_at);
   `)
   logger.info('Schema ready')
 }
