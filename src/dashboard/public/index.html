@@ -5,24 +5,47 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HarunaBot Dashboard</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#0f0f14;color:#e4e4e7;display:flex;min-height:100vh}
-nav{width:220px;background:#18181b;padding:20px 0;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-nav h1{padding:0 20px 16px;font-size:18px;color:#ff69b4}nav button{background:none;border:none;color:#a1a1aa;text-align:left;padding:10px 20px;cursor:pointer;font-size:14px;border-left:3px solid transparent}nav button.active{color:#fff;background:#27272a;border-color:#ff69b4}
-main{flex:1;padding:24px;overflow:auto}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0f0f14;color:#e4e4e7;min-height:100vh;display:flex}
+nav{width:220px;background:#18181b;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+nav h1{padding:20px;font-size:18px;color:#ff69b4}
+nav button{background:none;border:none;color:#a1a1aa;text-align:left;padding:12px 20px;cursor:pointer;font-size:14px;border-left:3px solid transparent;transition:.15s}
+nav button.active{color:#fff;background:#27272a;border-color:#ff69b4}
+nav button:hover{color:#fff;background:#1e1e22}
+main{flex:1;padding:24px;overflow:auto;min-width:0}
 .tab{display:none}.tab.active{display:block}
-.card{background:#18181b;border:1px solid #27272a;border-radius:10px;padding:16px;margin-bottom:12px}
-.card h3{font-size:14px;color:#a1a1aa;margin-bottom:8px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px}
-.stat{text-align:center}.stat b{font-size:22px;color:#ff69b4;display:block}
-input,textarea,select{width:100%;background:#27272a;border:1px solid #3f3f46;color:#fff;padding:8px 10px;border-radius:6px;margin-top:6px}
-button.btn{background:#ff69b4;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:600}button.btn:disabled{opacity:.5}
-table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:#a1a1aa;padding:6px}td{padding:6px;border-top:1px solid #27272a}
-.badge{padding:2px 6px;border-radius:4px;font-size:11px}.on{background:#166534;color:#86efac}.off{background:#3f3f46;color:#a1a1aa}
-#toast{position:fixed;bottom:20px;right:20px;background:#27272a;padding:10px 16px;border-radius:8px;display:none}
+.card{background:#18181b;border:1px solid #27272a;border-radius:10px;padding:16px;margin-bottom:12px;overflow:hidden}
+.card h3{font-size:14px;color:#a1a1aa;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{text-align:center;padding:20px 12px}.stat b{font-size:24px;color:#ff69b4;display:block;margin-bottom:4px}.stat span{font-size:12px;color:#71717a}
+input,textarea,select{width:100%;background:#27272a;border:1px solid #3f3f46;color:#fff;padding:10px;border-radius:8px;margin-top:6px;font-size:14px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#ff69b4}
+button.btn{background:#ff69b4;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:.15s}
+button.btn:hover{background:#ff4a9e}button.btn:active{transform:scale(.97)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:400px}th{text-align:left;color:#a1a1aa;padding:8px 6px;font-weight:600;white-space:nowrap}td{padding:8px 6px;border-top:1px solid #27272a;word-break:break-word}
+.badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}.on{background:#166534;color:#86efac}.off{background:#3f3f46;color:#a1a1aa}
+#toast{position:fixed;bottom:20px;right:20px;background:#27272a;border:1px solid #3f3f46;padding:10px 16px;border-radius:10px;display:none;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:50;background:#18181b;border:1px solid #27272a;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:18px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40}
+@media(max-width:768px){
+  body{flex-direction:column}
+  .hamburger{display:block}
+  nav{position:fixed;left:-260px;top:0;z-index:45;width:260px;transition:.25s;box-shadow:4px 0 20px rgba(0,0,0,.5)}
+  nav.open{left:0}
+  .overlay.open{display:block}
+  main{padding:60px 14px 20px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .card{padding:12px}
+  table{font-size:12px}
+}
+@media(max-width:400px){ .grid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
-<nav>
+<button class="hamburger" onclick="toggleNav()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleNav()"></div>
+<nav id="nav">
 <h1>HarunaBot</h1>
 <button class="active" onclick="tab('overview')">Overview</button>
 <button onclick="tab('groups')">Groups</button>
@@ -33,25 +56,25 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
 <main>
 <div id="overview" class="tab active">
 <div class="grid" id="stats-grid">Loading...</div>
-<div class="card"><h3>Info</h3><div id="sys-info"></div></div>
+<div class="card"><h3>Info</h3><div id="sys-info" style="font-size:13px;color:#a1a1aa"></div></div>
 </div>
 <div id="groups" class="tab">
-<div class="card"><h3>Groups</h3><div id="groups-list">Loading...</div></div>
+<div class="card"><h3>Groups</h3><div class="table-wrap"><div id="groups-list">Loading...</div></div></div>
 <div class="card" id="group-edit" style="display:none">
-<h3>Edit Group <span id="edit-jid"></span></h3>
-<label>Welcome <select id="e-welcome"><option value="0">Off</option><option value="1">On</option></select></label>
-<label>Welcome Msg<textarea id="e-welcome-msg" rows="3"></textarea></label>
-<label>AntiLink <select id="e-antilink"><option value="0">Off</option><option value="1">On</option></select></label>
-<label>AntiFlood <select id="e-antiflood"><option value="0">Off</option><option value="1">On</option></select></label>
-<label>Prefix<input id="e-prefix" placeholder="!"></label>
-<button class="btn" onclick="saveGroup()">Save</button>
+<h3>Edit Group <span id="edit-jid" style="font-weight:400;color:#a1a1aa;font-size:12px"></span></h3>
+<label style="font-size:13px">Welcome <select id="e-welcome"><option value="0">Off</option><option value="1">On</option></select></label>
+<label style="font-size:13px">Welcome Msg<textarea id="e-welcome-msg" rows="3" placeholder="Selamat datang @user!"></textarea></label>
+<label style="font-size:13px">AntiLink <select id="e-antilink"><option value="0">Off</option><option value="1">On</option></select></label>
+<label style="font-size:13px">AntiFlood <select id="e-antiflood"><option value="0">Off</option><option value="1">On</option></select></label>
+<label style="font-size:13px">Prefix<input id="e-prefix" placeholder="!"></label>
+<button class="btn" onclick="saveGroup()" style="margin-top:10px">Save</button>
 </div>
 </div>
 <div id="users" class="tab">
-<div class="card"><input id="user-q" placeholder="Cari JID..." oninput="loadUsers()"><div id="users-list" style="margin-top:10px"></div></div>
+<div class="card"><input id="user-q" placeholder="Cari JID atau nama..." oninput="loadUsers()"><div id="users-list" style="margin-top:10px" class="table-wrap"></div></div>
 </div>
 <div id="reminders" class="tab">
-<div class="card"><h3>Reminders Aktif</h3><div id="reminders-list">Loading...</div></div>
+<div class="card"><h3>Reminders Aktif</h3><div id="reminders-list" class="table-wrap">Loading...</div></div>
 </div>
 <div id="logs" class="tab">
 <div class="card"><h3>Tips</h3><p style="color:#a1a1aa;font-size:13px">Log live ada di terminal / PM2. Dashboard ini untuk setting & stats.</p></div>
@@ -63,17 +86,25 @@ const token = localStorage.getItem('dash_token') || prompt('DASH_TOKEN (kosongka
 if(token) localStorage.setItem('dash_token', token);
 const headers = token ? {Authorization:'Bearer '+token} : {};
 function api(p,o={}){o.headers={...headers,...(o.headers||{})}; if(o.body && typeof o.body!=='string') o.body=JSON.stringify(o.body), o.headers['Content-Type']='application/json'; return fetch(p,o).then(r=>r.json())}
-function tab(id){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase()===id).classList.add('active'); if(id==='overview') loadStats(); if(id==='groups') loadGroups(); if(id==='users') loadUsers(); if(id==='reminders') loadReminders()}
+function toggleNav(){document.getElementById('nav').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+function tab(id){
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  [...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase()===id).classList.add('active');
+  if(window.innerWidth<=768) toggleNav();
+  if(id==='overview') loadStats(); if(id==='groups') loadGroups(); if(id==='users') loadUsers(); if(id==='reminders') loadReminders()
+}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-async function loadStats(){try{const d=await api('/api/stats');document.getElementById('stats-grid').innerHTML=`<div class="card stat"><b>${d.modules.commands}</b>Commands</div><div class="card stat"><b>${d.modules.extensions}</b>Extensions</div><div class="card stat"><b>${Math.floor(d.bot.uptime/60)}m</b>Uptime</div><div class="card stat"><b>${d.system.platform}</b>Platform</div>`;document.getElementById('sys-info').innerHTML=`Node ${d.system.node} · ${d.system.arch} · RAM ${(d.system.ram.total/1e9).toFixed(1)}GB`;}catch(e){document.getElementById('stats-grid').textContent='Gagal load (cek token)'}}
+async function loadStats(){try{const d=await api('/api/stats');document.getElementById('stats-grid').innerHTML=`<div class="card stat"><b>${d.modules.commands}</b><span>Commands</span></div><div class="card stat"><b>${d.modules.extensions}</b><span>Extensions</span></div><div class="card stat"><b>${Math.floor(d.bot.uptime/60)}m</b><span>Uptime</span></div><div class="card stat"><b>${d.system.platform}</b><span>Platform</span></div>`;document.getElementById('sys-info').innerHTML=`Node ${d.system.node} · ${d.system.arch} · RAM ${(d.system.ram.total/1e9).toFixed(1)}GB`;}catch(e){document.getElementById('stats-grid').textContent='Gagal load (cek token)'}}
 let groupsCache=[];
-async function loadGroups(){try{groupsCache=await api('/api/groups');document.getElementById('groups-list').innerHTML=groupsCache.length?`<table><tr><th>JID</th><th>Welcome</th><th>AntiLink</th><th>Aksi</th></tr>${groupsCache.map(g=>`<tr><td>${g.jid.slice(0,22)}...</td><td><span class="badge ${g.welcome?'on':'off'}">${g.welcome?'ON':'OFF'}</span></td><td><span class="badge ${g.antilink?'on':'off'}">${g.antilink?'ON':'OFF'}</span></td><td><button class="btn" onclick="editGroup('${g.jid}')">Edit</button></td></tr>`).join('')}</table>`:'Belum ada grup';}catch(e){document.getElementById('groups-list').textContent='Gagal load'}}
+async function loadGroups(){try{groupsCache=await api('/api/groups');document.getElementById('groups-list').innerHTML=groupsCache.length?`<table><tr><th>JID</th><th>Welcome</th><th>AntiLink</th><th>Aksi</th></tr>${groupsCache.map(g=>`<tr><td style="font-size:11px">${g.jid.slice(0,22)}...</td><td><span class="badge ${g.welcome?'on':'off'}">${g.welcome?'ON':'OFF'}</span></td><td><span class="badge ${g.antilink?'on':'off'}">${g.antilink?'ON':'OFF'}</span></td><td><button class="btn" onclick="editGroup('${g.jid}')">Edit</button></td></tr>`).join('')}</table>`:'Belum ada grup';}catch(e){document.getElementById('groups-list').textContent='Gagal load'}}
 let editJid='';
-function editGroup(jid){const g=groupsCache.find(x=>x.jid===jid); if(!g) return; editJid=jid; document.getElementById('edit-jid').textContent=jid.slice(0,30); document.getElementById('e-welcome').value=g.welcome||0; document.getElementById('e-welcome-msg').value=g.welcome_msg||''; document.getElementById('e-antilink').value=g.antilink||0; document.getElementById('e-antiflood').value=g.antiflood||0; document.getElementById('e-prefix').value=g.prefix||''; document.getElementById('group-edit').style.display='block'}
-async function saveGroup(){const body={welcome:+document.getElementById('e-welcome').value, welcome_msg:document.getElementById('e-welcome-msg').value, antilink:+document.getElementById('e-antilink').value, antiflood:+document.getElementById('e-antiflood').value, prefix:document.getElementById('e-prefix').value||null}; const r=await api('/api/groups/'+encodeURIComponent(editJid)+'/settings',{method:'PUT',body}); toast(r.error||'Tersimpan'); loadGroups()}
-async function loadUsers(){const q=document.getElementById('user-q').value;try{const u=await api('/api/users?search='+encodeURIComponent(q));document.getElementById('users-list').innerHTML=u.length?`<table><tr><th>JID</th><th>Premium</th><th>Banned</th><th>Aksi</th></tr>${u.slice(0,20).map(x=>`<tr><td>${(x.jid||x.id||'').slice(0,20)}</td><td>${x.premium?'Ya':''}</td><td>${x.banned?'Ya':''}</td><td><button class="btn" onclick="ban('${x.jid||x.id}',${!x.banned})">${x.banned?'Unban':'Ban'}</button></td></tr>`).join('')}</table>`:'Tidak ada';}catch(e){}}
+function editGroup(jid){const g=groupsCache.find(x=>x.jid===jid); if(!g) return; editJid=jid; document.getElementById('edit-jid').textContent=jid.slice(0,30); document.getElementById('e-welcome').value=g.welcome||0; document.getElementById('e-welcome-msg').value=g.welcome_msg||''; document.getElementById('e-antilink').value=g.antilink||0; document.getElementById('e-antiflood').value=g.antiflood||0; document.getElementById('e-prefix').value=g.prefix||''; document.getElementById('group-edit').style.display='block'; document.getElementById('group-edit').scrollIntoView({behavior:'smooth'})}
+async function saveGroup(){const body={welcome:+document.getElementById('e-welcome').value, welcome_msg:document.getElementById('e-welcome-msg').value, antilink:+document.getElementById('e-antilink').value, antiflood:+document.getElementById('e-antiflood').value, prefix:document.getElementById('e-prefix').value||null}; const r=await api('/api/groups/'+encodeURIComponent(editJid)+'/settings',{method:'PUT',body}); toast(r.error||'Tersimpan ✓'); loadGroups()}
+async function loadUsers(){const q=document.getElementById('user-q').value;try{const u=await api('/api/users?search='+encodeURIComponent(q));document.getElementById('users-list').innerHTML=u.length?`<table><tr><th>JID</th><th>Premium</th><th>Banned</th><th>Aksi</th></tr>${u.slice(0,20).map(x=>`<tr><td style="font-size:11px">${(x.jid||x.id||'').slice(0,20)}...</td><td>${x.premium?'Ya':''}</td><td>${x.banned?'Ya':''}</td><td><button class="btn" onclick="ban('${x.jid||x.id}',${!x.banned})">${x.banned?'Unban':'Ban'}</button></td></tr>`).join('')}</table>`:'Tidak ada';}catch(e){}}
 async function ban(jid,b){await api('/api/users/'+encodeURIComponent(jid)+'/ban',{method:'POST',body:{banned:b}});toast(b?'Banned':'Unbanned');loadUsers()}
-async function loadReminders(){try{const r=await api('/api/reminders');document.getElementById('reminders-list').innerHTML=r.length?`<table><tr><th>ID</th><th>JID</th><th>Text</th><th>Trigger</th><th></th></tr>${r.map(x=>`<tr><td>#${x.id}</td><td>${x.jid.slice(0,15)}...</td><td>${x.text.slice(0,30)}</td><td>${new Date(x.trigger_at*1000).toLocaleString()}</td><td><button class="btn" onclick="delRem(${x.id})">Hapus</button></td></tr>`).join('')}</table>`:'Tidak ada reminder';}catch(e){}}
+async function loadReminders(){try{const r=await api('/api/reminders');document.getElementById('reminders-list').innerHTML=r.length?`<table><tr><th>ID</th><th>JID</th><th>Text</th><th>Trigger</th><th></th></tr>${r.map(x=>`<tr><td>#${x.id}</td><td style="font-size:11px">${x.jid.slice(0,15)}...</td><td>${x.text.slice(0,30)}</td><td style="font-size:11px">${new Date(x.trigger_at*1000).toLocaleString()}</td><td><button class="btn" onclick="delRem(${x.id})">Hapus</button></td></tr>`).join('')}</table>`:'Tidak ada reminder';}catch(e){}}
 async function delRem(id){await api('/api/reminders/'+id,{method:'DELETE'});toast('Dihapus');loadReminders()}
 loadStats();
 </script>
