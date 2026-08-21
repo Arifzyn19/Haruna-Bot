@@ -55,6 +55,13 @@ class WalletModel {
     })()
   }
 
+  leaderboard(limit = 10) {
+    return db.prepare(`
+      SELECT jid, (cash + bank) as total, cash, bank FROM wallets
+      ORDER BY total DESC LIMIT ?
+    `).all(limit)
+  }
+
   history(jid, limit = 10) {
     return db.prepare(`
       SELECT * FROM transactions
