@@ -27,10 +27,12 @@ export async function onMessagesUpsert({ messages, type }, sock) {
 
       const botId = jidNormalizedUser(sock.user?.id)
       const isMentioned = botId && parsed.mentions?.includes(botId)
+      const isRepliedToBot = botId && parsed.quoted?.sender === botId
+      const isTriggered = isMentioned || isRepliedToBot
       const isCommand = parsed.text?.startsWith(SETTINGS.prefix) ?? false
 
       const hasMediaTrigger = parsed.isMedia || parsed.quoted?.isMedia
-      if (agentService.isEnabled() && (parsed.text || hasMediaTrigger) && !isCommand && (parsed.isGroup ? isMentioned : true)) {
+      if (agentService.isEnabled() && (parsed.text || hasMediaTrigger) && !isCommand && (parsed.isGroup ? isTriggered : true)) {
         await agentService.handleMessage(parsed, msg, sock)
         continue
       }
